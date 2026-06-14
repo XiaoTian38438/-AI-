@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>股票涨跌预测分析</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    min-height: 100vh; padding: 30px; color: #e0e0e0;
+}
+h1 { text-align: center; margin-bottom: 30px; font-weight: 300; letter-spacing: 2px; }
+.chart-box {
+    background: rgba(255,255,255,0.05); backdrop-filter: blur(10px);
+    border-radius: 16px; padding: 24px; margin-bottom: 24px;
+    border: 1px solid rgba(255,255,255,0.1);
+    max-width: 960px; margin-left: auto; margin-right: auto;
+}
+.chart-box h3 { margin-bottom: 12px; font-weight: 500; color: #a0a0c0; }
+</style>
+</head>
+<body>
+<h1>股票涨跌预测分析</h1>
+
+        <div class="chart-box">
+            <h3>价格走势与预测信号</h3>
+            <canvas id="chart_0"></canvas>
+        </div>
+        <script>
+        new Chart(document.getElementById('chart_0'), {
+            type: 'line',
+            data: {
+                labels: ["2026-03-10", "2026-03-11", "2026-03-12", "2026-03-13", "2026-03-16", "2026-03-17", "2026-03-18", "2026-03-19", "2026-03-20", "2026-03-23", "2026-03-24", "2026-03-25", "2026-03-26", "2026-03-27", "2026-03-30", "2026-03-31", "2026-04-01", "2026-04-02", "2026-04-07", "2026-04-08", "2026-04-09", "2026-04-10", "2026-04-13", "2026-04-14", "2026-04-15", "2026-04-16", "2026-04-17", "2026-04-20", "2026-04-21", "2026-04-22", "2026-04-23", "2026-04-24", "2026-04-27", "2026-04-28", "2026-04-29", "2026-04-30", "2026-05-04", "2026-05-05", "2026-05-06", "2026-05-07", "2026-05-08", "2026-05-11", "2026-05-12", "2026-05-13", "2026-05-14", "2026-05-15", "2026-05-18", "2026-05-19", "2026-05-20", "2026-05-21", "2026-05-22", "2026-05-25", "2026-05-26", "2026-05-27", "2026-05-28", "2026-05-29", "2026-06-01", "2026-06-02", "2026-06-03", "2026-06-04", "2026-06-05", "2026-06-08", "2026-06-09", "2026-06-10", "2026-06-11", "2026-06-12", "2026-06-15", "2026-06-16", "2026-06-17", "2026-06-18", "2026-06-19", "2026-06-22", "2026-06-23", "2026-06-24", "2026-06-25", "2026-06-26", "2026-06-29", "2026-06-30", "2026-07-01", "2026-07-02", "2026-07-03", "2026-07-06", "2026-07-07", "2026-07-08", "2026-07-09", "2026-07-10", "2026-07-13", "2026-07-14", "2026-07-15", "2026-07-16", "2026-07-17", "2026-07-20", "2026-07-21", "2026-07-22", "2026-07-23", "2026-07-24", "2026-07-27", "2026-07-28", "2026-07-29", "2026-07-30", "2026-07-31", "2026-08-03", "2026-08-04", "2026-08-05", "2026-08-06", "2026-08-07", "2026-08-10", "2026-08-11", "2026-08-12", "2026-08-13", "2026-08-14", "2026-08-17", "2026-08-18", "2026-08-19", "2026-08-20", "2026-08-21", "2026-08-24", "2026-08-25", "2026-08-26", "2026-08-27", "2026-08-28", "2026-08-31", "2026-09-01", "2026-09-02", "2026-09-03", "2026-09-04", "2026-09-07", "2026-09-08", "2026-09-09", "2026-09-10", "2026-09-11", "2026-09-14", "2026-09-15", "2026-09-16", "2026-09-17", "2026-09-18", "2026-09-21", "2026-09-22", "2026-09-23", "2026-09-24", "2026-09-25", "2026-09-28", "2026-09-29", "2026-09-30", "2026-10-01", "2026-10-02", "2026-10-05", "2026-10-06", "2026-10-07", "2026-10-08", "2026-10-09", "2026-10-12", "2026-10-13", "2026-10-14", "2026-10-15", "2026-10-16", "2026-10-19", "2026-10-20", "2026-10-21", "2026-10-22", "2026-10-23", "2026-10-26", "2026-10-27", "2026-10-28", "2026-10-29", "2026-10-30", "2026-11-02", "2026-11-03", "2026-11-04", "2026-11-05", "2026-11-06", "2026-11-09", "2026-11-10", "2026-11-11", "2026-11-12", "2026-11-13", "2026-11-16", "2026-11-17", "2026-11-18", "2026-11-19", "2026-11-20", "2026-11-23", "2026-11-24", "2026-11-25", "2026-11-26", "2026-11-27", "2026-11-30", "2026-12-01", "2026-12-02", "2026-12-03", "2026-12-04", "2026-12-07", "2026-12-08", "2026-12-09", "2026-12-10", "2026-12-11", "2026-12-14", "2026-12-15", "2026-12-16", "2026-12-17", "2026-12-18", "2026-12-21", "2026-12-22", "2026-12-23", "2026-12-24", "2026-12-25", "2026-12-28", "2026-12-29", "2026-12-30", "2026-12-31", "2027-01-01", "2027-01-04", "2027-01-05", "2027-01-06", "2027-01-07", "2027-01-08", "2027-01-11", "2027-01-12", "2027-01-13", "2027-01-14", "2027-01-15", "2027-01-18", "2027-01-19", "2027-01-20", "2027-01-21", "2027-01-22", "2027-01-25", "2027-01-26", "2027-01-27", "2027-01-28", "2027-01-29", "2027-02-01", "2027-02-02", "2027-02-03", "2027-02-04", "2027-02-05", "2027-02-08", "2027-02-09", "2027-02-10", "2027-02-11", "2027-02-12"],
+                datasets: [{
+                label: "\u771f\u5b9e\u6536\u76d8\u4ef7",
+                data: [6.8772, 6.8662, 6.869, 6.8966, 6.8961, 6.8868, 6.8882, 6.9004, 6.8943, 6.8917, 6.8934, 6.8995, 6.9102, 6.9138, 6.9114, 6.9004, 6.8738, 6.8976, 6.8574, 6.8297, 6.8347, 6.8284, 6.8322, 6.8158, 6.8211, 6.8213, 6.8223, 6.8177, 6.8158, 6.8244, 6.835, 6.8363, 6.8231, 6.8388, 6.8335, 6.8287, 6.8303, 6.8302, 6.8112, 6.8019, 6.8012, 6.7965, 6.7921, 6.791, 6.7852, 6.8106, 6.8002, 6.8061, 6.8028, 6.8022, 6.7953, 6.7843, 6.7852, 6.7821, 6.7799, 6.7668, 6.7651, 6.7626, 6.7694, 6.7739, 6.7656, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
+                borderColor: '#3498db',
+                backgroundColor: '#3498db22',
+                fill: false,
+                tension: 0.3,
+                pointRadius: 1,
+                borderWidth: 2,
+                borderDash: [],
+                spanGaps: false,
+            },{
+                label: "\u63a8\u7b97\u6536\u76d8\u4ef7",
+                data: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 6.7713, 6.7685, 6.7763, 6.7957, 6.7916, 6.7876, 6.8078, 6.8171, 6.8099, 6.8162, 6.8091, 6.8019, 6.8042, 6.7776, 6.7536, 6.7452, 6.7307, 6.734, 6.7209, 6.701, 6.7197, 6.7157, 6.7157, 6.6957, 6.6875, 6.688, 6.6717, 6.6758, 6.6668, 6.662, 6.653, 6.6768, 6.6757, 6.6606, 6.6707, 6.6534, 6.6553, 6.6281, 6.6094, 6.6111, 6.6201, 6.6214, 6.6189, 6.614, 6.5933, 6.5827, 6.5756, 6.5888, 6.5925, 6.5679, 6.5713, 6.5652, 6.5552, 6.5625, 6.5754, 6.5869, 6.5747, 6.5696, 6.5731, 6.5853, 6.5779, 6.5745, 6.5587, 6.5418, 6.5517, 6.5689, 6.567, 6.5795, 6.5834, 6.5739, 6.5778, 6.5974, 6.596, 6.616, 6.58, 6.5901, 6.5903, 6.5854, 6.5857, 6.5581, 6.5542, 6.5581, 6.5769, 6.5691, 6.5573, 6.5497, 6.561, 6.5644, 6.5564, 6.5623, 6.5627, 6.5747, 6.5644, 6.5591, 6.5529, 6.5324, 6.5354, 6.5379, 6.5371, 6.533, 6.5131, 6.5066, 6.501, 6.4894, 6.4863, 6.4907, 6.5151, 6.5165, 6.519, 6.517, 6.4904, 6.4891, 6.489, 6.521, 6.5175, 6.5206, 6.5192, 6.5026, 6.517, 6.5261, 6.5358, 6.5227, 6.5405, 6.5208, 6.5277, 6.5561, 6.5419, 6.5334, 6.5338, 6.5261, 6.5044, 6.5044, 6.4892, 6.4946, 6.4814, 6.5012, 6.4898, 6.4846, 6.4945, 6.4771, 6.4792, 6.4958, 6.4733, 6.4748, 6.4774, 6.4869, 6.4694, 6.4508, 6.4569, 6.4599, 6.4623, 6.466, 6.456, 6.4582, 6.4611, 6.4506, 6.4747, 6.4801, 6.4632, 6.471, 6.4571, 6.4667, 6.4812, 6.4693, 6.4813, 6.4859, 6.4959, 6.5204, 6.5161, 6.5051, 6.4923, 6.4804, 6.4785, 6.4821, 6.4849, 6.495, 6.4942, 6.5127, 6.5083, 6.5437],
+                borderColor: '#9b59b6',
+                backgroundColor: '#9b59b622',
+                fill: false,
+                tension: 0.3,
+                pointRadius: 1,
+                borderWidth: 2,
+                borderDash: [8, 4],
+                spanGaps: false,
+            },{
+                label: "\u770b\u6da8\u4fe1\u53f7",
+                data: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
+                borderColor: '#2ecc71',
+                backgroundColor: '#2ecc7122',
+                fill: false,
+                tension: 0.3,
+                pointRadius: 1,
+                borderWidth: 2,
+                borderDash: [],
+                spanGaps: false,
+            },{
+                label: "\u770b\u8dcc\u4fe1\u53f7",
+                data: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 6.7713, 6.7685, 6.7763, 6.7957, 6.7916, 6.7876, 6.8078, 6.8171, 6.8099, 6.8162, 6.8091, 6.8019, 6.8042, 6.7776, 6.7536, 6.7452, 6.7307, 6.734, 6.7209, 6.701, 6.7197, 6.7157, 6.7157, 6.6957, 6.6875, 6.688, 6.6717, 6.6758, 6.6668, 6.662, 6.653, 6.6768, 6.6757, 6.6606, 6.6707, 6.6534, 6.6553, 6.6281, 6.6094, 6.6111, 6.6201, 6.6214, 6.6189, 6.614, 6.5933, 6.5827, 6.5756, 6.5888, 6.5925, 6.5679, 6.5713, 6.5652, 6.5552, 6.5625, 6.5754, 6.5869, 6.5747, 6.5696, 6.5731, 6.5853, 6.5779, 6.5745, 6.5587, 6.5418, 6.5517, 6.5689, 6.567, 6.5795, 6.5834, 6.5739, 6.5778, 6.5974, 6.596, 6.616, 6.58, 6.5901, 6.5903, 6.5854, 6.5857, 6.5581, 6.5542, 6.5581, 6.5769, 6.5691, 6.5573, 6.5497, 6.561, 6.5644, 6.5564, 6.5623, 6.5627, 6.5747, 6.5644, 6.5591, 6.5529, 6.5324, 6.5354, 6.5379, 6.5371, 6.533, 6.5131, 6.5066, 6.501, 6.4894, 6.4863, 6.4907, 6.5151, 6.5165, 6.519, 6.517, 6.4904, 6.4891, 6.489, 6.521, 6.5175, 6.5206, 6.5192, 6.5026, 6.517, 6.5261, 6.5358, 6.5227, 6.5405, 6.5208, 6.5277, 6.5561, 6.5419, 6.5334, 6.5338, 6.5261, 6.5044, 6.5044, 6.4892, 6.4946, 6.4814, 6.5012, 6.4898, 6.4846, 6.4945, 6.4771, 6.4792, 6.4958, 6.4733, 6.4748, 6.4774, 6.4869, 6.4694, 6.4508, 6.4569, 6.4599, 6.4623, 6.466, 6.456, 6.4582, 6.4611, 6.4506, 6.4747, 6.4801, 6.4632, 6.471, 6.4571, 6.4667, 6.4812, 6.4693, 6.4813, 6.4859, 6.4959, 6.5204, 6.5161, 6.5051, 6.4923, 6.4804, 6.4785, 6.4821, 6.4849, 6.495, 6.4942, 6.5127, 6.5083, 6.5437],
+                borderColor: '#e74c3c',
+                backgroundColor: '#e74c3c22',
+                fill: false,
+                tension: 0.3,
+                pointRadius: 1,
+                borderWidth: 2,
+                borderDash: [],
+                spanGaps: false,
+            },]
+            },
+            options: {
+                responsive: true,
+                interaction: { mode: 'index', intersect: false },
+                plugins: { legend: { position: 'top' } },
+                scales: {
+                    x: { grid: { color: 'rgba(255,255,255,0.05)' } },
+                    y: { grid: { color: 'rgba(255,255,255,0.05)' } }
+                }
+            }
+        });
+        </script>
+        
+        <div class="chart-box">
+            <h3>训练损失曲线</h3>
+            <canvas id="chart_1"></canvas>
+        </div>
+        <script>
+        new Chart(document.getElementById('chart_1'), {
+            type: 'line',
+            data: {
+                labels: ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17"],
+                datasets: [{
+                label: "\u8bad\u7ec3\u635f\u5931",
+                data: [1.8592108512616734, 1.5097857825172762, 1.82898868227679, 1.7253773558642356, 1.5567557703382522, 1.742704748046509, 1.572471178903077, 1.3874150445879845, 1.5049707032005426, 1.2569719377537258, 1.3786354640722007, 1.4967089792940145, 1.5309087437408193, 1.2038004716372297, 1.3874886702825884, 1.4293864914536856, 1.2790288890213213],
+                borderColor: '#e94560',
+                backgroundColor: '#e9456022',
+                fill: true,
+                tension: 0.3,
+                pointRadius: 3,
+                borderWidth: 2,
+                borderDash: [],
+                spanGaps: false,
+            },{
+                label: "\u9a8c\u8bc1\u635f\u5931",
+                data: [1.4621577580580558, 0.9556343056944688, 0.976386616953188, 1.0949605047100635, 1.2624558498951834, 1.3981950829587164, 1.4621697530220683, 1.282761038075918, 1.1312226700276065, 1.1807444001357734, 1.2417284857529636, 1.3675171536691104, 1.3231768220697673, 1.3738128827819558, 1.5667065408931726, 1.5759462362036092, 1.5813122727976499],
+                borderColor: '#f39c12',
+                backgroundColor: '#f39c1222',
+                fill: false,
+                tension: 0.3,
+                pointRadius: 3,
+                borderWidth: 2,
+                borderDash: [],
+                spanGaps: false,
+            },]
+            },
+            options: {
+                responsive: true,
+                interaction: { mode: 'index', intersect: false },
+                plugins: { legend: { position: 'top' } },
+                scales: {
+                    x: { grid: { color: 'rgba(255,255,255,0.05)' } },
+                    y: { grid: { color: 'rgba(255,255,255,0.05)' } }
+                }
+            }
+        });
+        </script>
+        
+</body>
+</html>

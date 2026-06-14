@@ -1,0 +1,1224 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>智能决策助手 - AI智能体系统</title>
+<script src="/static/mermaid2.min.js"></script>
+<script src="/static/chart2.umd.min.js"></script>
+<style>
+:root {
+  --bg-primary: #0f172a; --bg-secondary: #1e293b; --bg-card: #0f172a;
+  --text-primary: #e2e8f0; --text-secondary: #94a3b8; --text-muted: #64748b;
+  --border: #334155; --accent: #6366f1; --accent2: #8b5cf6;
+  --success: #22c55e; --error: #ef4444; --warning: #f59e0b;
+  --bubble-user-bg: #1e40af; --bubble-user-text: #e0f2fe;
+  --bubble-ai-bg: #1e293b; --bubble-ai-border: #334155;
+  --input-bg: #0f172a; --input-border: #334155; --input-focus: #6366f1;
+  --badge-blue-bg: #1e40af; --badge-blue-text: #93c5fd;
+  --btn-blue-bg: #1e40af; --btn-blue-text: #93c5fd;
+  --card-bg: #0f172a; --card-border: #334155;
+  --success-bg: #166534; --success-text: #86efac;
+  --warn-bg: #854d0e; --warn-text: #fde68a;
+  --error-bg: #991b1b; --error-text: #fca5a5;
+  --purple-bg: #4c1d95; --chart-grid: #1e293b;
+}
+[data-theme="light"] {
+  --bg-primary: #f8fafc; --bg-secondary: #ffffff; --bg-card: #f1f5f9;
+  --text-primary: #1e293b; --text-secondary: #475569; --text-muted: #94a3b8;
+  --border: #e2e8f0; --accent: #4f46e5; --accent2: #7c3aed;
+  --success: #16a34a; --error: #dc2626; --warning: #d97706;
+  --bubble-user-bg: #3b82f6; --bubble-user-text: #ffffff;
+  --bubble-ai-bg: #f1f5f9; --bubble-ai-border: #e2e8f0;
+  --input-bg: #ffffff; --input-border: #d1d5db; --input-focus: #4f46e5;
+  --badge-blue-bg: #dbeafe; --badge-blue-text: #1e40af;
+  --btn-blue-bg: #3b82f6; --btn-blue-text: #ffffff;
+  --card-bg: #f8fafc; --card-border: #e2e8f0;
+  --success-bg: #dcfce7; --success-text: #166534;
+  --warn-bg: #fef9c3; --warn-text: #854d0e;
+  --error-bg: #fef2f2; --error-text: #991b1b;
+  --purple-bg: #ede9fe; --chart-grid: #e2e8f0;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif; background: var(--bg-primary); color: var(--text-primary); height: 100vh; display: flex; flex-direction: column; }
+.header { background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-primary) 100%); padding: 12px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+.header h1 { font-size: 18px; background: linear-gradient(135deg, #60a5fa, #a78bfa); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+.header .badge { font-size: 11px; background: var(--badge-blue-bg); color: var(--badge-blue-text); padding: 2px 8px; border-radius: 10px; margin-left: 8px; }
+.header .status { font-size: 12px; color: var(--text-secondary); display: flex; align-items: center; gap: 6px; }
+.header .status .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--success); animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
+.main { display: flex; flex: 1; overflow: hidden; }
+.chat-panel { flex: 1; display: flex; flex-direction: column; }
+.messages { flex: 1; overflow-y: auto; padding: 20px; }
+.msg { margin-bottom: 16px; display: flex; gap: 12px; }
+.msg.user { justify-content: flex-end; }
+.msg .avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+.msg.assistant .avatar { background: linear-gradient(135deg, var(--accent), var(--accent2)); }
+.msg.user .avatar { background: linear-gradient(135deg, #3b82f6, #06b6d4); }
+.msg .bubble { max-width: 70%; padding: 12px 16px; border-radius: 16px; font-size: 14px; line-height: 1.6; white-space: pre-wrap; }
+.msg.assistant .bubble { background: var(--bubble-ai-bg); border: 1px solid var(--bubble-ai-border); }
+.msg.user .bubble { background: var(--bubble-user-bg); color: var(--bubble-user-text); }
+.msg .bubble .data-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 8px; padding: 10px 14px; margin-top: 8px; font-size: 12px; }
+.msg .bubble .data-card .label { color: var(--text-secondary); }
+.msg .bubble .data-card .value { color: #60a5fa; font-weight: 600; }
+.msg .bubble .data-card .row { display: flex; justify-content: space-between; margin: 4px 0; }
+.msg .bubble .badge-pass { background: var(--success-bg); color: var(--success-text); padding: 2px 8px; border-radius: 4px; font-size: 11px; }
+.msg .bubble .badge-warn { background: var(--warn-bg); color: var(--warn-text); padding: 2px 8px; border-radius: 4px; font-size: 11px; }
+.input-area { padding: 16px 20px; border-top: 1px solid var(--border); background: var(--bg-secondary); }
+.input-wrap { display: flex; gap: 10px; max-width: 800px; margin: 0 auto; }
+.input-wrap input { flex: 1; background: var(--input-bg); border: 1px solid var(--input-border); border-radius: 12px; padding: 12px 16px; color: var(--text-primary); font-size: 14px; outline: none; }
+.input-wrap input:focus { border-color: var(--input-focus); }
+.input-wrap input::placeholder { color: var(--text-muted); }
+.input-wrap button { background: linear-gradient(135deg, #6366f1, #8b5cf6); border: none; color: white; padding: 12px 24px; border-radius: 12px; cursor: pointer; font-size: 14px; white-space: nowrap; }
+.input-wrap button:hover { opacity: 0.9; }
+.input-wrap button:disabled { opacity: 0.5; cursor: not-allowed; }
+.side-panel { width: 380px; border-left: 1px solid var(--border); background: var(--bg-secondary); display: flex; flex-direction: column; overflow: hidden; }
+.side-panel .tabs { display: flex; border-bottom: 1px solid var(--border); }
+.side-panel .tabs button { flex: 1; padding: 10px; background: none; border: none; color: var(--text-secondary); cursor: pointer; font-size: 13px; border-bottom: 2px solid transparent; }
+.side-panel .tabs button.active { color: #60a5fa; border-bottom-color: var(--accent); }
+.tab-content { flex: 1; overflow-y: auto; padding: 16px; display: none; }
+.tab-content.active { display: block; }
+.workflow-diagram { background: var(--card-bg); border-radius: 8px; padding: 12px; margin-bottom: 12px; }
+.workflow-log .log-item { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 12px; }
+.workflow-log .log-item .icon { width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; }
+.workflow-log .log-item .icon.success { background: var(--success-bg); color: var(--success-text); }
+.workflow-log .log-item .icon.error { background: var(--error-bg); color: var(--error-text); }
+.workflow-log .log-item .icon.running { background: var(--badge-blue-bg); color: var(--badge-blue-text); animation: pulse 1s infinite; }
+.workflow-log .log-item .icon.pending { background: var(--border); color: var(--text-secondary); }
+.workflow-log .log-item .name { color: var(--text-primary); font-weight: 500; }
+.workflow-log .log-item .time { color: var(--text-muted); margin-left: auto; }
+.config-section { margin-bottom: 16px; }
+.config-section label { display: block; color: var(--text-secondary); font-size: 12px; margin-bottom: 4px; }
+.config-section input, .config-section select { width: 100%; background: var(--input-bg); border: 1px solid var(--input-border); border-radius: 6px; padding: 8px 12px; color: var(--text-primary); font-size: 13px; }
+.config-section button { width: 100%; background: var(--btn-blue-bg); border: none; color: var(--btn-blue-text); padding: 8px; border-radius: 6px; cursor: pointer; margin-top: 8px; font-size: 13px; }
+.quick-actions { display: flex; flex-wrap: wrap; gap: 6px; padding: 12px 20px; border-top: 1px solid var(--border); }
+.quick-actions button { background: var(--bg-secondary); border: 1px solid var(--border); color: var(--text-secondary); padding: 6px 12px; border-radius: 16px; cursor: pointer; font-size: 12px; }
+.quick-actions button:hover { border-color: var(--accent); color: #60a5fa; }
+.usage-list .usage-item { padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 12px; }
+.usage-list .usage-item .q { color: var(--text-primary); }
+.usage-list .usage-item .meta { color: var(--text-muted); margin-top: 2px; }
+.typing { display: inline-flex; gap: 4px; padding: 4px 0; }
+.typing span { width: 6px; height: 6px; background: var(--accent); border-radius: 50%; animation: typing 1.4s infinite; }
+.typing span:nth-child(2) { animation-delay: 0.2s; }
+.typing span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes typing { 0%,60%,100% { transform: translateY(0); } 30% { transform: translateY(-8px); } }
+.welcome { text-align: center; padding: 60px 20px; color: var(--text-muted); }
+.welcome h2 { color: var(--text-secondary); font-size: 20px; margin-bottom: 12px; }
+.welcome p { font-size: 14px; line-height: 1.8; }
+
+/* 打字机光标 */
+.typewriter-cursor { display: inline-block; width: 2px; height: 1em; background: #60a5fa; margin-left: 1px; animation: blink 0.8s infinite; vertical-align: text-bottom; }
+@keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0; } }
+
+/* 思考中状态 */
+.thinking-status { display: inline-flex; align-items: center; gap: 6px; color: #a78bfa; font-size: 13px; margin-bottom: 4px; }
+.thinking-status .spinner { width: 14px; height: 14px; border: 2px solid var(--border); border-top-color: #a78bfa; border-radius: 50%; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* 当前执行节点高亮 */
+.workflow-log .log-item.active .name { color: #a78bfa; }
+.workflow-log .log-item.active .icon { background: var(--purple-bg); color: #c4b5fd; animation: pulse 1s infinite; }
+
+/* 主题切换按钮 */
+.theme-toggle { cursor: pointer; background: none; border: 1px solid var(--border); color: var(--text-secondary); padding: 4px 8px; border-radius: 4px; font-size: 14px; }
+
+/* 移动端适配 */
+@media (max-width: 768px) {
+  .side-panel { display: none; position: fixed; right: 0; top: 0; bottom: 0; width: 320px; z-index: 100; }
+  .side-panel.mobile-open { display: flex; }
+  .msg .bubble { max-width: 85%; }
+  .header { padding: 8px 12px; }
+  .input-area { padding: 10px 12px; }
+  .quick-actions { padding: 8px 12px; }
+  .mobile-menu-btn { display: inline-block !important; }
+}
+.mobile-menu-btn { display: none; background: none; border: 1px solid var(--border); color: var(--text-secondary); padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 16px; }
+.mobile-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 99; }
+.mobile-overlay.active { display: block; }
+
+/* i18n 语言切换 */
+.lang-toggle { cursor: pointer; background: none; border: 1px solid var(--border); color: var(--text-secondary); padding: 4px 6px; border-radius: 4px; font-size: 11px; margin-left: 8px; }
+
+/* 登录遮罩 */
+.login-overlay { position: fixed; inset: 0; background: var(--bg-primary); z-index: 200; display: flex; align-items: center; justify-content: center; }
+.login-overlay.hidden { display: none; }
+.login-card { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 16px; padding: 40px 36px; width: 380px; max-width: 90vw; text-align: center; }
+.login-card h2 { font-size: 22px; margin-bottom: 6px; background: linear-gradient(135deg, #60a5fa, #a78bfa); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+.login-card .subtitle { color: var(--text-secondary); font-size: 13px; margin-bottom: 24px; }
+.login-card .field { text-align: left; margin-bottom: 14px; }
+.login-card .field label { display: block; color: var(--text-secondary); font-size: 12px; margin-bottom: 4px; }
+.login-card .field input { width: 100%; background: var(--input-bg); border: 1px solid var(--input-border); border-radius: 8px; padding: 10px 14px; color: var(--text-primary); font-size: 14px; outline: none; }
+.login-card .field input:focus { border-color: var(--input-focus); }
+.login-card .btn-row { display: flex; gap: 10px; margin-top: 20px; }
+.login-card .btn-row button { flex: 1; padding: 10px; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 500; }
+.login-card .btn-primary { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; }
+.login-card .btn-secondary { background: var(--purple-bg); color: #c4b5fd; }
+.login-card .error-msg { color: var(--error); font-size: 12px; margin-top: 10px; min-height: 18px; }
+.login-card .switch-hint { color: var(--text-muted); font-size: 12px; margin-top: 16px; }
+
+/* 语音录制脉冲动画 */
+@keyframes voicePulse { 0% { box-shadow: 0 0 0 0 rgba(239,68,68,0.4); } 70% { box-shadow: 0 0 0 10px rgba(239,68,68,0); } 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0); } }
+.voice-recording { animation: voicePulse 1.5s infinite !important; border-color: #ef4444 !important; background: #991b1b !important; color: white !important; }
+
+/* 语音状态指示条 */
+.voice-status { position:fixed;top:60px;left:50%;transform:translateX(-50%);background:var(--purple-bg);color:var(--text-primary);padding:8px 20px;border-radius:20px;font-size:13px;z-index:150;box-shadow:0 2px 10px rgba(0,0,0,0.3);display:none;align-items:center;gap:8px; }
+.voice-status.show { display:flex; }
+.voice-status .pulse-dot { width:10px;height:10px;border-radius:50%;background:#ef4444;animation:pulse 1s infinite; }
+
+/* Toast通知 */
+.toast { position:fixed;top:16px;right:16px;background:var(--bg-secondary);color:var(--text-primary);padding:10px 20px;border-radius:8px;font-size:13px;z-index:300;box-shadow:0 2px 12px rgba(0,0,0,0.3);border:1px solid var(--border);transform:translateX(120%);transition:transform 0.3s ease;max-width:350px; }
+.toast.show { transform:translateX(0); }
+.toast.error { border-color:var(--error); }
+.toast.success { border-color:var(--success); }
+
+/* TTS播报按钮 */
+.tts-btn { background:none;border:1px solid var(--border);color:var(--text-secondary);padding:2px 8px;border-radius:4px;cursor:pointer;font-size:11px;margin-left:6px; }
+.tts-btn:hover { border-color:var(--accent);color:#60a5fa; }
+.tts-btn.speaking { border-color:#a78bfa;color:#a78bfa; }
+</style>
+</head>
+<body>
+<div id="toast" class="toast"></div>
+<div id="voiceStatus" class="voice-status"><div class="pulse-dot"></div><span>正在聆听...</span></div>
+
+<!-- 登录遮罩 -->
+<div class="login-overlay" id="loginOverlay">
+  <div class="login-card">
+    <h2>智能决策助手</h2>
+    <p class="subtitle">AI智能体系统 · 请登录后使用</p>
+    <div class="field">
+      <label>用户名</label>
+      <input type="text" id="loginUsername" placeholder="输入用户名" onkeydown="if(event.key==='Enter')document.getElementById('loginPassword').focus()" />
+    </div>
+    <div class="field">
+      <label>密码</label>
+      <input type="password" id="loginPassword" placeholder="输入密码" onkeydown="if(event.key==='Enter')handleLogin()" />
+    </div>
+    <div class="error-msg" id="loginError"></div>
+    <div class="btn-row">
+      <button class="btn-primary" onclick="handleLogin()">登录</button>
+      <button class="btn-secondary" onclick="handleRegister()">注册</button>
+    </div>
+    <p class="switch-hint">没有账号？点击注册即可使用</p>
+  </div>
+</div>
+
+<div class="header">
+  <div style="display:flex;align-items:center;">
+    <h1>智能决策助手</h1>
+    <span class="badge">AI智能体系统</span>
+  </div>
+  <div class="status">
+    <div class="dot"></div>
+    <span id="llmStatus">检测中...</span>
+    <span style="margin-left:12px;color:var(--text-muted);">工作流 13 节点 · 27 Agent(3域×3功能×3子)</span>
+    <button class="theme-toggle" onclick="toggleTheme()" title="切换主题">&#9790;</button>
+    <button id="ttsToggleBtn" class="theme-toggle" onclick="toggleAutoSpeak()" title="语音播报开关" style="font-size:12px;">🔊</button>
+    <button class="lang-toggle" onclick="toggleLang()" id="langBtn">EN</button>
+    <button class="mobile-menu-btn" onclick="toggleMobilePanel()">&#9776;</button>
+  </div>
+</div>
+
+<!-- 模型状态横幅 -->
+<div id="modelStatusBanner" style="display:none;background:var(--warn-bg);color:var(--warn-text);padding:6px 16px;text-align:center;font-size:12px;font-weight:500;"></div>
+
+<div class="main">
+  <div class="mobile-overlay" id="mobileOverlay" onclick="toggleMobilePanel()"></div>
+  <div class="chat-panel">
+    <div class="messages" id="messages">
+      <div class="welcome">
+        <h2>你好，我是智能决策助手</h2>
+        <p>我可以帮你分析股票行情、天气预报和汇率走势<br>基于工作流的多智能体协作系统，融合ML模型推理与LLM智能决策</p>
+        <div style="margin-top:20px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
+          <button class="quick-btn" style="background:var(--bg-secondary);border:1px solid var(--border);color:var(--text-secondary);padding:6px 12px;border-radius:16px;cursor:pointer;font-size:12px;" onclick="sendQuick('今天平安银行股票怎么样')">股票分析</button>
+          <button class="quick-btn" style="background:var(--bg-secondary);border:1px solid var(--border);color:var(--text-secondary);padding:6px 12px;border-radius:16px;cursor:pointer;font-size:12px;" onclick="sendQuick('北京明天天气怎么样')">天气查询</button>
+          <button class="quick-btn" style="background:var(--bg-secondary);border:1px solid var(--border);color:var(--text-secondary);padding:6px 12px;border-radius:16px;cursor:pointer;font-size:12px;" onclick="sendQuick('美元汇率最近走势')">汇率分析</button>
+        </div>
+      </div>
+    </div>
+    <div class="quick-actions">
+      <button onclick="sendQuick('分析一下茅台600519')">茅台分析</button>
+      <button onclick="sendQuick('上海天气如何')">上海天气</button>
+      <button onclick="sendQuick('欧元汇率')">欧元汇率</button>
+      <button onclick="sendQuick('比亚迪股票行情')">比亚迪</button>
+      <button onclick="sendQuick('广州天气怎么样')">广州天气</button>
+    </div>
+    <div class="input-area">
+      <div class="input-wrap">
+        <input type="text" id="queryInput" placeholder="输入你的问题，如：平安银行股票怎么样？" onkeydown="if(event.key==='Enter')send()" />
+        <button id="voiceBtn" onclick="toggleVoice()" title="语音输入" style="background:var(--bg-secondary);border:1px solid var(--border);color:var(--text-secondary);padding:12px 14px;border-radius:12px;cursor:pointer;font-size:16px;">🎤</button>
+        <button id="sendBtn" onclick="send()">发送</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="side-panel">
+    <div class="tabs">
+      <button class="active" onclick="switchTab('workflow')">工作流</button>
+      <button onclick="switchTab('config')">配置</button>
+      <button onclick="switchTab('usage')">使用记录</button>
+      <button onclick="switchTab('history')">历史</button>
+    </div>
+    <div class="tab-content active" id="tab-workflow">
+      <div class="workflow-diagram" id="mermaidDiagram"></div>
+      <div class="workflow-log" id="workflowLog">
+        <p style="color:#64748b;text-align:center;padding:20px;">发送问题后将显示工作流执行日志</p>
+      </div>
+    </div>
+    <div class="tab-content" id="tab-config">
+      <div id="authSection">
+        <div class="config-section">
+          <label>用户名</label>
+          <input type="text" id="authUsername" placeholder="输入用户名" />
+        </div>
+        <div class="config-section">
+          <label>密码</label>
+          <input type="password" id="authPassword" placeholder="输入密码" />
+        </div>
+        <div class="config-section" style="display:flex;gap:8px;">
+          <button onclick="doLogin()" style="flex:1;">登录</button>
+          <button onclick="doRegister()" style="flex:1;background:var(--purple-bg);color:#c4b5fd;">注册</button>
+        </div>
+        <div id="authInfo" style="display:none;padding:8px;background:var(--success-bg);opacity:0.8;border-radius:6px;margin-bottom:12px;">
+          <span id="authUserDisplay" style="color:var(--success-text);"></span>
+          <button onclick="doLogout()" style="float:right;background:var(--error-bg);border:none;color:var(--error-text);padding:2px 8px;border-radius:4px;cursor:pointer;font-size:11px;">登出</button>
+        </div>
+      </div>
+      <hr style="border-color:var(--border);margin:12px 0;">
+      <div class="config-section">
+        <label>LLM API Key (可选)</label>
+        <input type="password" id="apiKey" placeholder="sk-..." />
+      </div>
+      <div class="config-section">
+        <label>API Base URL</label>
+        <input type="text" id="baseUrl" value="https://api.openai.com/v1" />
+      </div>
+      <div class="config-section">
+        <label>模型名称</label>
+        <input type="text" id="modelName" value="gpt-3.5-turbo" />
+      </div>
+      <div class="config-section">
+        <button onclick="saveConfig()">保存配置</button>
+      </div>
+      <hr style="border-color:var(--border);margin:12px 0;">
+      <div class="config-section">
+        <label>ML模型管理</label>
+        <div id="modelStatusInfo" style="font-size:12px;color:var(--text-secondary);margin-bottom:8px;"></div>
+        <button onclick="retrainModels()" id="retrainBtn">立即重新训练</button>
+      </div>
+    </div>
+    <div class="tab-content" id="tab-usage">
+      <div class="usage-list" id="usageList">
+        <p style="color:#64748b;text-align:center;padding:20px;">暂无使用记录</p>
+      </div>
+    </div>
+    <div class="tab-content" id="tab-history">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <span style="color:var(--text-secondary);font-size:13px;">对话历史 (多轮上下文)</span>
+        <button onclick="clearHistory()" style="background:var(--error-bg);border:none;color:var(--error-text);padding:4px 10px;border-radius:4px;cursor:pointer;font-size:11px;">清空</button>
+      </div>
+      <div class="usage-list" id="historyList">
+        <p style="color:#64748b;text-align:center;padding:20px;">暂无对话历史</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+mermaid.initialize({startOnLoad:false,theme:'dark',themeVariables:{primaryColor:'#6366f1',primaryTextColor:'#e2e8f0',primaryBorderColor:'#334155',lineColor:'#64748b'}});
+let currentMermaid='';
+let currentMermaidTheme='dark';
+
+// 主题切换时重新渲染mermaid图
+function updateMermaidTheme(){
+  const isLight = document.documentElement.getAttribute('data-theme')==='light';
+  const newTheme = isLight?'default':'dark';
+  if(newTheme===currentMermaidTheme) return;
+  currentMermaidTheme = newTheme;
+  mermaid.initialize({startOnLoad:false,theme:newTheme,themeVariables:isLight?{primaryColor:'#4f46e5',primaryTextColor:'#1e293b',primaryBorderColor:'#e2e8f0',lineColor:'#94a3b8'}:{primaryColor:'#6366f1',primaryTextColor:'#e2e8f0',primaryBorderColor:'#334155',lineColor:'#64748b'}});
+  // 重新渲染当前图
+  if(currentMermaid){
+    const oldId='mermaidGraph';
+    const el=document.getElementById('mermaidDiagram');
+    if(el){
+      // 重置mermaid内部计数器
+      try{mermaid.render(oldId+'2',currentMermaid).then(({svg})=>{el.innerHTML=svg;}).catch(()=>{});}catch(e){}
+    }
+  }
+}
+
+// Check LLM status
+fetch('/api/llm_status').then(r=>r.json()).then(d=>{
+  document.getElementById('llmStatus').textContent=d.available?'LLM 已连接':'LLM 未连接(规则回退)';
+});
+
+// Load workflow diagram
+fetch('/api/workflow').then(r=>r.json()).then(d=>{
+  renderMermaid(d.mermaid);
+});
+
+// 跟踪当前执行节点（用于工作流日志实时更新）
+let activeNodeName = '';
+
+function renderMermaid(code){
+  if(code===currentMermaid)return;
+  currentMermaid=code;
+  const el=document.getElementById('mermaidDiagram');
+  try{
+    mermaid.render('mermaidGraph',code).then(({svg})=>{el.innerHTML=svg;}).catch(()=>{});
+  }catch(e){el.innerHTML='<p style="color:#64748b;font-size:12px;">流程图加载中...</p>';}
+}
+
+function switchTab(name){
+  document.querySelectorAll('.tabs button').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('tab-'+name).classList.add('active');
+  if(name==='usage')loadUsage();
+  if(name==='history')loadHistory();
+}
+
+function addMsg(role,text){
+  const msgs=document.getElementById('messages');
+  const welcome=msgs.querySelector('.welcome');
+  if(welcome)welcome.remove();
+  const div=document.createElement('div');
+  div.className='msg '+role;
+  const avatar=document.createElement('div');
+  avatar.className='avatar';
+  avatar.textContent=role==='user'?'👤':'🤖';
+  const bubble=document.createElement('div');
+  bubble.className='bubble';
+  bubble.innerHTML=text;
+  if(role==='user'){
+    div.appendChild(bubble);
+    div.appendChild(avatar);
+  }else{
+    div.appendChild(avatar);
+    div.appendChild(bubble);
+  }
+  msgs.appendChild(div);
+  msgs.scrollTop=msgs.scrollHeight;
+  return bubble;
+}
+
+function addStreamingMsg(){
+  const msgs=document.getElementById('messages');
+  const welcome=msgs.querySelector('.welcome');
+  if(welcome)welcome.remove();
+  const div=document.createElement('div');
+  div.className='msg assistant';
+  div.id='stream-msg';
+  const avatar=document.createElement('div');
+  avatar.className='avatar';
+  avatar.textContent='🤖';
+  const bubble=document.createElement('div');
+  bubble.className='bubble';
+  // 初始显示状态（第一步是提示词优化）
+  bubble.innerHTML='<div class="thinking-status"><div class="spinner"></div><span>正在优化提示词...</span></div>';
+  div.appendChild(avatar);
+  div.appendChild(bubble);
+  msgs.appendChild(div);
+  msgs.scrollTop=msgs.scrollHeight;
+  return bubble;
+}
+
+function removeTyping(){
+  const el=document.getElementById('typing-msg');
+  if(el)el.remove();
+}
+
+async function send(){
+  if(!_isLoggedIn){return;}
+  const input=document.getElementById('queryInput');
+  const query=input.value.trim();
+  if(!query)return;
+  input.value='';
+  addMsg('user',escHtml(query));
+  document.getElementById('sendBtn').disabled=true;
+
+  // 每次新对话清空工作流日志
+  workflowLogItems = {};
+  const wfLog = document.getElementById('workflowLog');
+  if(wfLog) wfLog.innerHTML = '';
+
+  const bubble = addStreamingMsg();
+  let analysisText = '';
+  let resultMeta = null;
+  let thinkingRemoved = false;
+  let cursorAdded = false;
+
+  try{
+    const resp = await fetch('/api/chat/stream',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({query})
+    });
+    if(!resp.ok){
+      bubble.innerHTML = '<span style="color:var(--error);">服务器错误 ('+resp.status+')，请稍后重试</span>';
+      document.getElementById('sendBtn').disabled=false;
+      return;
+    }
+
+    const reader = resp.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    let lastDataTime = Date.now();
+    const STREAM_TIMEOUT = 300000; // 300秒无数据则超时（LLM分析不限时）
+
+    while(true){
+      // 超时检测
+      if(Date.now() - lastDataTime > STREAM_TIMEOUT){
+        if(!thinkingRemoved) bubble.innerHTML = '';
+        bubble.innerHTML += '<div style="color:var(--warning);margin-top:8px;font-size:12px;">响应超时，工作流执行时间过长，请重试</div>';
+        break;
+      }
+
+      const {done, value} = await reader.read();
+      if(done) break;
+
+      lastDataTime = Date.now();
+      buffer += decoder.decode(value, {stream:true});
+      const lines = buffer.split('\n');
+      buffer = lines.pop() || '';
+
+      for(const line of lines){
+        if(!line.startsWith('data: ')) continue;
+        try{
+          const evt = JSON.parse(line.slice(6));
+
+          if(evt.type === 'node_start'){
+            // 更新思考状态文字
+            lastDataTime = Date.now();
+            const info = JSON.parse(evt.content);
+            activeNodeName = info.node;
+            if(!thinkingRemoved){
+              // 根据节点类型显示不同状态文字
+              let statusText = '思考中...';
+              if(info.node === 'prompt_optimizer'){
+                statusText = '正在优化提示词...';
+              }else if(info.node === 'decision_route'){
+                statusText = '正在分析意图...';
+              }else if(info.node.startsWith('fetch_stock')){
+                statusText = '正在采集股票数据...';
+              }else if(info.node.startsWith('fetch_weather')){
+                statusText = '正在采集天气数据...';
+              }else if(info.node.startsWith('fetch_currency')){
+                statusText = '正在采集汇率数据...';
+              }else if(info.node.startsWith('analyze_stock')){
+                statusText = '正在ML推理股票...';
+              }else if(info.node.startsWith('analyze_weather')){
+                statusText = '正在ML推理天气...';
+              }else if(info.node.startsWith('analyze_currency')){
+                statusText = '正在ML推理汇率...';
+              }else if(info.node === 'llm_analysis'){
+                statusText = '正在AI综合分析...';
+              }else if(info.node === 'validate'){
+                statusText = '正在校验输出...';
+              }else if(info.node === 'merge'){
+                statusText = '正在汇总+27-Agent分层协商...';
+              }
+              bubble.innerHTML = '<div class="thinking-status"><div class="spinner"></div><span>' + statusText + '</span></div>';
+            }
+            // 更新侧边栏工作流日志
+            addWorkflowLogItem(info.node, info.description, 'running');
+          }
+          else if(evt.type === 'node_done'){
+            const info = JSON.parse(evt.content);
+            updateWorkflowLogItem(info.node, 'success');
+          }
+          else if(evt.type === 'result_start'){
+            // 开始输出结果，移除思考状态
+            resultMeta = JSON.parse(evt.content);
+            thinkingRemoved = true;
+            bubble.innerHTML = '';
+            analysisText = '';
+            cursorAdded = true;
+            bubble.innerHTML = '<span class="typewriter-cursor"></span>';
+          }
+          else if(evt.type === 'char'){
+            if(!thinkingRemoved){
+              thinkingRemoved = true;
+              bubble.innerHTML = '';
+            }
+            analysisText += evt.content;
+            // 更新气泡内容：已有文字 + 光标
+            let html = escHtml(analysisText);
+            // 在分析文本后追加数据卡片和校验标记（不参与打字机）
+            bubble.innerHTML = html + '<span class="typewriter-cursor"></span>';
+            // 滚动到底部
+            const msgs = document.getElementById('messages');
+            msgs.scrollTop = msgs.scrollHeight;
+          }
+          else if(evt.type === 'result_end'){
+            // 打字完成，移除光标，追加数据卡片+导出按钮+播报按钮
+            let html = escHtml(analysisText);
+            if(resultMeta && resultMeta.data && !resultMeta.data.error){
+              html += buildDataCard(resultMeta);
+            }
+            if(resultMeta && resultMeta.validation){
+              html += '<div style="margin-top:6px;">';
+              html += resultMeta.validation.passed
+                ? '<span class="badge-pass">输出校验通过</span>'
+                : '<span class="badge-warn">校验警告: '+(resultMeta.validation.issues||[]).join(', ')+'</span>';
+              html += '</div>';
+            }
+            // 导出报告+播报按钮
+            html += '<div style="margin-top:8px;"><button onclick="exportReport(this)" style="background:var(--btn-blue-bg);border:none;color:var(--btn-blue-text);padding:4px 12px;border-radius:4px;cursor:pointer;font-size:11px;">' + (i18n[currentLang]?.exportBtn||'导出报告') + '</button>';
+            html += '<button class="tts-btn" onclick="speakBubble(this)">🔊 播报</button></div>';
+            bubble.innerHTML = html;
+            // 保存结果元数据用于导出
+            bubble.dataset.result = JSON.stringify(resultMeta||{});
+            bubble.dataset.analysis = analysisText;
+            cursorAdded = false;
+            const msgs = document.getElementById('messages');
+            msgs.scrollTop = msgs.scrollHeight;
+            // 自动播报（如果开启）
+            if(_autoSpeak && analysisText){ speakText(analysisText); }
+          }
+          else if(evt.type === 'workflow'){
+            const wf = JSON.parse(evt.content);
+            updateWorkflowLog(wf.log);
+            if(wf.mermaid) renderMermaid(wf.mermaid);
+          }
+          else if(evt.type === 'error'){
+            if(!thinkingRemoved) bubble.innerHTML = '';
+            bubble.innerHTML = '<span style="color:var(--error);">错误: '+escHtml(evt.content)+'</span>';
+          }
+          else if(evt.type === 'done'){
+            // 确保光标移除
+            if(cursorAdded){
+              let html = escHtml(analysisText);
+              if(resultMeta && resultMeta.data && !resultMeta.data.error){
+                html += buildDataCard(resultMeta);
+              }
+              if(resultMeta && resultMeta.validation){
+                html += '<div style="margin-top:6px;">';
+                html += resultMeta.validation.passed
+                  ? '<span class="badge-pass">输出校验通过</span>'
+                  : '<span class="badge-warn">校验警告: '+(resultMeta.validation.issues||[]).join(', ')+'</span>';
+                html += '</div>';
+              }
+              html += '<div style="margin-top:8px;"><button onclick="exportReport(this)" style="background:var(--btn-blue-bg);border:none;color:var(--btn-blue-text);padding:4px 12px;border-radius:4px;cursor:pointer;font-size:11px;">导出报告</button>';
+              html += '<button class="tts-btn" onclick="speakBubble(this)">🔊 播报</button></div>';
+              bubble.innerHTML = html;
+              bubble.dataset.result = JSON.stringify(resultMeta||{});
+              bubble.dataset.analysis = analysisText;
+              cursorAdded = false;
+            }
+          }
+        }catch(e){}
+      }
+    }
+  }catch(e){
+    if(!thinkingRemoved) bubble.innerHTML = '';
+    bubble.innerHTML = '<span style="color:var(--error);">网络错误: '+escHtml(e.message)+'</span>';
+  }
+  document.getElementById('sendBtn').disabled=false;
+}
+
+function buildDataCard(r){
+  let html='<div class="data-card">';
+  const route=r.route;
+  if(route==='stock'){
+    const d=r.data;
+    html+=`<div class="row"><span class="label">股票代码</span><span class="value">${d.symbol||''}</span></div>`;
+    html+=`<div class="row"><span class="label">当前价格</span><span class="value">${d.close?.toFixed(2)||'-'} 元</span></div>`;
+    html+=`<div class="row"><span class="label">涨跌幅</span><span class="value" style="color:${(d.change_pct||0)>0?'#22c55e':'#ef4444'}">${d.change_pct?.toFixed(2)||'-'}%</span></div>`;
+    if(d.ml_prob)html+=`<div class="row"><span class="label">ML上涨概率</span><span class="value">${(d.ml_prob*100).toFixed(1)}%</span></div>`;
+  }else if(route==='weather'){
+    const d=r.data;
+    html+=`<div class="row"><span class="label">城市</span><span class="value">${d.city||''}</span></div>`;
+    html+=`<div class="row"><span class="label">当前温度</span><span class="value">${d.temp?.toFixed(1)||'-'}°C</span></div>`;
+    if(d.ml_pred)html+=`<div class="row"><span class="label">ML预测明日</span><span class="value">${d.ml_pred}°C</span></div>`;
+  }else if(route==='currency'){
+    const d=r.data;
+    html+=`<div class="row"><span class="label">币种</span><span class="value">${d.currency||''}</span></div>`;
+    html+=`<div class="row"><span class="label">汇率</span><span class="value">${d.rate?.toFixed(4)||'-'}</span></div>`;
+    if(d.ml_prob)html+=`<div class="row"><span class="label">ML上涨概率</span><span class="value">${(d.ml_prob*100).toFixed(1)}%</span></div>`;
+  }
+  html+='</div>';
+  // 图表
+  if(r.chart && r.chart.type && r.chart.type!=='none' && r.chart.datasets && r.chart.datasets.length>0){
+    const chartId = 'chart-'+Date.now();
+    html+=`<div style="margin-top:10px;background:var(--card-bg);border-radius:8px;padding:10px;"><canvas id="${chartId}" height="200"></canvas></div>`;
+    // 延迟渲染图表
+    setTimeout(()=>{
+      const canvas = document.getElementById(chartId);
+      if(canvas) renderChart(canvas, r.chart);
+    }, 100);
+  }
+  // Agent投票结果（27 Agent分层投票，含LLM推理Agent标记 + 功能组层级）
+  if(r.agent_vote && r.agent_vote.agents && r.agent_vote.agents.length>0){
+    const av=r.agent_vote;
+    const llmCount=av.agents.filter(a=>a.type==='LLM').length;
+    const groups=[...new Set(av.agents.map(a=>a.group||'').filter(g=>g))];
+    html+=`<div style="margin-top:8px;background:var(--purple-bg);border-radius:8px;padding:8px 10px;font-size:12px;">`;
+    html+=`<div style="font-weight:600;color:var(--text-primary);margin-bottom:4px;">27-Agent分层协商 (${av.agents.length}个Agent，含${llmCount}个LLM推理，${groups.length}个功能组)</div>`;
+    if(av.group_results && av.group_results.length>0){
+      for(const g of av.group_results){
+        const gSigColor=g.signal==='上涨'||g.signal==='升温'?'var(--success)':g.signal==='下跌'||g.signal==='降温'?'var(--error)':'var(--text-secondary)';
+        html+=`<div style="margin:4px 0 2px;padding:3px 6px;background:rgba(99,102,241,0.15);border-radius:4px;font-weight:500;color:var(--text-primary);">▎${g.group_name}组 → <span style="color:${gSigColor};">${g.signal}</span> <span style="color:var(--text-muted);font-size:11px;">(共识${(g.confidence*100).toFixed(0)}%)</span></div>`;
+        const gAgents=av.agents.filter(a=>a.group===g.group_name);
+        for(const a of gAgents){
+          const sigColor=a.signal==='上涨'||a.signal==='升温'?'var(--success)':a.signal==='下跌'||a.signal==='降温'?'var(--error)':'var(--text-secondary)';
+          const typeTag=a.type==='LLM'?'<span style="background:#6366f1;color:white;padding:1px 4px;border-radius:3px;font-size:10px;margin-right:4px;">LLM</span>':'';
+          const reasonTag=a.reason?`<span style="color:var(--text-muted);font-size:10px;margin-left:4px;">${a.reason}</span>`:'';
+          html+=`<div style="display:flex;justify-content:space-between;align-items:center;padding:1px 0 1px 12px;"><span style="color:var(--text-secondary);font-size:11px;">${typeTag}${a.name}${reasonTag}</span><span><span style="color:${sigColor};font-weight:500;font-size:11px;">${a.signal}</span> <span style="color:var(--text-muted);font-size:10px;">(${(a.confidence*100).toFixed(0)}%·w${a.weight})</span></span></div>`;
+        }
+      }
+    }else{
+      for(const a of av.agents){
+        const sigColor=a.signal==='上涨'||a.signal==='升温'?'var(--success)':a.signal==='下跌'||a.signal==='降温'?'var(--error)':'var(--text-secondary)';
+        const typeTag=a.type==='LLM'?'<span style="background:#6366f1;color:white;padding:1px 4px;border-radius:3px;font-size:10px;margin-right:4px;">LLM</span>':'';
+        const reasonTag=a.reason?`<span style="color:var(--text-muted);font-size:10px;margin-left:4px;">${a.reason}</span>`:'';
+        html+=`<div style="display:flex;justify-content:space-between;align-items:center;padding:2px 0;"><span style="color:var(--text-secondary);">${typeTag}${a.name}${reasonTag}</span><span><span style="color:${sigColor};font-weight:500;">${a.signal}</span> <span style="color:var(--text-muted);font-size:11px;">(${(a.confidence*100).toFixed(0)}%·w${a.weight})</span></span></div>`;
+      }
+    }
+    if(av.weighted_votes){
+      html+=`<div style="margin-top:4px;padding-top:4px;border-top:1px solid var(--border);font-size:11px;color:var(--text-muted);">域级加权: ${Object.entries(av.weighted_votes).map(([k,v])=>`${k}(${v.toFixed(1)})`).join(' ')}</div>`;
+    }
+    if(av.all_agree){
+      html+=`<div style="margin-top:3px;color:var(--success);font-size:11px;">✓ 全票一致</div>`;
+    }else if(av.has_dissent){
+      html+=`<div style="margin-top:3px;color:var(--warning);font-size:11px;">⚠ 存在分歧，已分层投票</div>`;
+    }
+    html+=`<div style="margin-top:3px;color:var(--accent);font-weight:500;">${av.consensus}</div>`;
+    html+=`</div>`;
+  }
+  return html;
+}
+
+function renderChart(canvas, chartData){
+  const datasets = chartData.datasets.map((ds,i)=>{
+    const colors = ['#60a5fa','#f97316','#22c55e','#a78bfa','#f43f5e'];
+    const c = colors[i % colors.length];
+    return {
+      label: ds.label,
+      data: ds.data,
+      borderColor: ds.borderColor || c,
+      backgroundColor: (chartData.type==='bar') ? c+'88' : c+'18',
+      fill: chartData.type==='line',
+      tension: 0.3,
+      pointRadius: chartData.type==='line' ? 2 : 0,
+      borderWidth: 2,
+    };
+  });
+  new Chart(canvas, {
+    type: chartData.type==='kline'?'line':chartData.type,
+    data: { labels: chartData.labels, datasets: datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        title: { display: true, text: chartData.title||'', color: getComputedStyle(document.documentElement).getPropertyValue('--text-secondary').trim(), font:{size:13} },
+        legend: { labels: { color: getComputedStyle(document.documentElement).getPropertyValue('--text-secondary').trim(), font:{size:11} } },
+      },
+      scales: {
+        x: { ticks: { color: getComputedStyle(document.documentElement).getPropertyValue('--text-muted').trim(), maxTicksLimit: 10, font:{size:10} }, grid: { color: getComputedStyle(document.documentElement).getPropertyValue('--chart-grid').trim() } },
+        y: { ticks: { color: getComputedStyle(document.documentElement).getPropertyValue('--text-muted').trim(), font:{size:10} }, grid: { color: getComputedStyle(document.documentElement).getPropertyValue('--chart-grid').trim() } },
+      }
+    }
+  });
+}
+
+function escHtml(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+// 实时工作流日志项管理
+let workflowLogItems = {};
+
+function addWorkflowLogItem(node, description, status){
+  const el=document.getElementById('workflowLog');
+  // 清除占位文字
+  const placeholder = el.querySelector('p');
+  if(placeholder) placeholder.remove();
+
+  workflowLogItems[node] = {description, status};
+
+  let html = '';
+  for(const [n, info] of Object.entries(workflowLogItems)){
+    const isActive = info.status === 'running';
+    const iconClass = isActive ? 'running' : info.status;
+    const icon = info.status==='success'?'✓':info.status==='running'?'●':'○';
+    html += `<div class="log-item ${isActive?'active':''}" id="wf-${n}"><div class="icon ${iconClass}">${icon}</div><span class="name">${escHtml(info.description||n)}</span><span class="time">${isActive?'...':''}</span></div>`;
+  }
+  el.innerHTML = html;
+}
+
+function updateWorkflowLogItem(node, status){
+  if(!workflowLogItems[node]) return;
+  workflowLogItems[node].status = status;
+  const el = document.getElementById('wf-'+node);
+  if(el){
+    el.classList.remove('active');
+    const icon = el.querySelector('.icon');
+    if(icon){
+      icon.className = 'icon ' + status;
+      icon.textContent = status==='success'?'✓':'✗';
+    }
+    const time = el.querySelector('.time');
+    if(time) time.textContent = '✓';
+  }
+}
+
+function updateWorkflowLog(log){
+  const el=document.getElementById('workflowLog');
+  if(!log||!log.length){el.innerHTML='<p style="color:#64748b;text-align:center;">暂无日志</p>';return;}
+  workflowLogItems = {};
+  el.innerHTML=log.map(item=>{
+    const icon=item.status==='success'?'✓':item.status==='error'?'✗':'●';
+    return `<div class="log-item"><div class="icon ${item.status}">${icon}</div><span class="name">${item.description||item.node}</span><span class="time">${item.elapsed||0}s</span></div>`;
+  }).join('');
+}
+
+async function loadUsage(){
+  const resp=await fetch('/api/usage');
+  const data=await resp.json();
+  const el=document.getElementById('usageList');
+  if(!data.records||!data.records.length){el.innerHTML='<p style="color:#64748b;text-align:center;">暂无记录</p>';return;}
+  el.innerHTML=data.records.reverse().map(r=>`<div class="usage-item"><div class="q">${escHtml(r.query)}</div><div class="meta">${r.timestamp} | ${r.route} | ${r.validation_passed?'✓':'⚠'}</div></div>`).join('');
+}
+
+async function saveConfig(){
+  const cfg={api_key:document.getElementById('apiKey').value,base_url:document.getElementById('baseUrl').value,model:document.getElementById('modelName').value};
+  await fetch('/api/configure',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(cfg)});
+  const resp=await fetch('/api/llm_status');
+  const d=await resp.json();
+  document.getElementById('llmStatus').textContent=d.available?'LLM 已连接':'LLM 未连接(规则回退)';
+  alert('配置已保存');
+}
+
+function sendQuick(q){document.getElementById('queryInput').value=q;send();}
+
+async function loadHistory(){
+  const resp=await fetch('/api/history');
+  const data=await resp.json();
+  const el=document.getElementById('historyList');
+  if(!data.history||!data.history.length){el.innerHTML='<p style="color:#64748b;text-align:center;">暂无对话历史</p>';return;}
+  el.innerHTML=data.history.map(h=>{
+    const isUser=h.role==='user';
+    const icon=isUser?'👤':'🤖';
+    const bg=isUser?'var(--badge-blue-bg)':'var(--purple-bg)';
+    return `<div style="padding:8px 10px;margin:4px 0;background:${bg};opacity:0.8;border-radius:8px;font-size:12px;"><span style="margin-right:6px;">${icon}</span><span style="color:var(--text-primary);">${escHtml(h.content).substring(0,100)}</span><div style="color:var(--text-muted);font-size:10px;margin-top:2px;">${h.timestamp||''} ${h.route?'| '+h.route:''}</div></div>`;
+  }).join('');
+}
+
+async function clearHistory(){
+  await fetch('/api/history/clear',{method:'POST'});
+  loadHistory();
+}
+
+// ======================== 用户认证 ========================
+let _isLoggedIn = false;
+
+function _setLoggedIn(username){
+  _isLoggedIn = true;
+  const overlay = document.getElementById('loginOverlay');
+  if(overlay) overlay.classList.add('hidden');
+  const info = document.getElementById('authInfo');
+  if(info) info.style.display = 'block';
+  const display = document.getElementById('authUserDisplay');
+  if(display) display.textContent = '已登录: ' + username;
+  const fields = document.querySelectorAll('#authSection .config-section:not(#authInfo)');
+  fields.forEach(f=>f.style.display='none');
+}
+
+function _setLoggedOut(){
+  _isLoggedIn = false;
+  const overlay = document.getElementById('loginOverlay');
+  if(overlay) overlay.classList.remove('hidden');
+  const info = document.getElementById('authInfo');
+  if(info) info.style.display = 'none';
+  const fields = document.querySelectorAll('#authSection .config-section:not(#authInfo)');
+  fields.forEach(f=>f.style.display='block');
+}
+
+async function checkAuth(){
+  try{
+    const resp = await fetch('/api/auth/status');
+    const d = await resp.json();
+    if(d.logged_in){
+      _setLoggedIn(d.username||'');
+    } else {
+      _setLoggedOut();
+    }
+  }catch(e){
+    console.error('checkAuth error:', e);
+    _setLoggedOut();
+  }
+}
+
+async function handleLogin(){
+  const username = document.getElementById('loginUsername').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  const errEl = document.getElementById('loginError');
+  if(!username||!password){errEl.textContent='请输入用户名和密码';return;}
+  errEl.textContent = '';
+  try{
+    const resp = await fetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username,password})});
+    const d = await resp.json();
+    if(d.status==='ok'){
+      _setLoggedIn(username);
+    }else{
+      errEl.textContent = d.message||'登录失败';
+    }
+  }catch(e){
+    errEl.textContent = '网络错误: '+e.message;
+  }
+}
+
+async function handleRegister(){
+  const username = document.getElementById('loginUsername').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  const errEl = document.getElementById('loginError');
+  if(!username||!password){errEl.textContent='请输入用户名和密码';return;}
+  errEl.textContent = '';
+  try{
+    const resp = await fetch('/api/auth/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username,password})});
+    const d = await resp.json();
+    if(d.status==='ok'){
+      _setLoggedIn(username);
+    }else{
+      errEl.textContent = d.message||'注册失败';
+    }
+  }catch(e){
+    errEl.textContent = '网络错误: '+e.message;
+  }
+}
+
+async function doLogin(){
+  const username = document.getElementById('authUsername').value.trim();
+  const password = document.getElementById('authPassword').value;
+  if(!username||!password){alert('请输入用户名和密码');return;}
+  try{
+    const resp = await fetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username,password})});
+    const d = await resp.json();
+    if(d.status==='ok'){_setLoggedIn(username);}else{alert(d.message||'登录失败');}
+  }catch(e){alert('网络错误: '+e.message);}
+}
+
+async function doRegister(){
+  const username = document.getElementById('authUsername').value.trim();
+  const password = document.getElementById('authPassword').value;
+  if(!username||!password){alert('请输入用户名和密码');return;}
+  try{
+    const resp = await fetch('/api/auth/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username,password})});
+    const d = await resp.json();
+    if(d.status==='ok'){_setLoggedIn(username);}else{alert(d.message||'注册失败');}
+  }catch(e){alert('网络错误: '+e.message);}
+}
+
+async function doLogout(){
+  await fetch('/api/auth/logout',{method:'POST'});
+  _setLoggedOut();
+}
+
+// 页面加载时检查登录状态
+checkAuth();
+
+// ======================== 模型状态管理 ========================
+let _modelCheckTimer = null;
+
+function checkModelStatus(){
+  fetch('/api/models/status').then(r=>r.json()).then(d=>{
+    const banner = document.getElementById('modelStatusBanner');
+    const anyTraining = Object.values(d).some(m=>m.training);
+    const allReady = Object.values(d).every(m=>m.ready);
+    
+    if(anyTraining){
+      banner.style.display = 'block';
+      banner.textContent = i18n[currentLang]?.modelPreparing||'模型准备中，ML预测暂时使用默认值...';
+    } else if(!allReady){
+      banner.style.display = 'block';
+      banner.textContent = i18n[currentLang]?.modelNotReady||'模型尚未就绪，请在配置页点击"立即重新训练"';
+    } else {
+      banner.style.display = 'none';
+    }
+    
+    // 更新配置页模型状态信息
+    const info = document.getElementById('modelStatusInfo');
+    if(info){
+      let html = '';
+      const names = {stock:'股票',weather:'天气',currency:'汇率'};
+      for(const [k,v] of Object.entries(d)){
+        let status = v.training ? '训练中...' : (v.ready ? '✓ 就绪' : '✗ 未就绪');
+        html += '<div style="margin:2px 0;">' + (names[k]||k) + ': ' + status;
+        if(v.train_acc) html += ' (准确率:' + (v.train_acc*100).toFixed(1) + '%)';
+        if(v.train_mse) html += ' (MSE:' + v.train_mse.toFixed(4) + ')';
+        if(v.last_trained) html += ' [' + v.last_trained + ']';
+        html += '</div>';
+      }
+      info.innerHTML = html;
+    }
+    
+    // 如果还在训练，5秒后再检查
+    if(anyTraining){
+      if(_modelCheckTimer) clearTimeout(_modelCheckTimer);
+      _modelCheckTimer = setTimeout(checkModelStatus, 5000);
+    }
+  }).catch(()=>{});
+}
+
+async function retrainModels(){
+  try{
+    const resp = await fetch('/api/models/retrain',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({})});
+    const d = await resp.json();
+    if(d.status==='ok'){
+      checkModelStatus();
+    } else {
+      alert(d.message||'训练启动失败');
+    }
+  }catch(e){
+    alert('网络错误: '+e.message);
+  }
+}
+
+// 页面加载时检查模型状态
+checkModelStatus();
+
+// ======================== 导出报告 ========================
+async function exportReport(btn){
+  const bubble = btn.closest('.bubble');
+  if(!bubble) return;
+  const meta = JSON.parse(bubble.dataset.result||'{}');
+  const analysis = bubble.dataset.analysis||'';
+  const resp = await fetch('/api/export',{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      query: meta.query||'', analysis: analysis,
+      route: meta.route||'', chart: meta.chart||null,
+      validation: meta.validation||{}, agent_vote: meta.agent_vote||null
+    })
+  });
+  const d = await resp.json();
+  if(d.html){
+    const blob = new Blob([d.html],{type:'text/html'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = d.filename||'report.html';
+    a.click(); URL.revokeObjectURL(url);
+  }
+}
+
+// ======================== 主题切换 ========================
+function toggleTheme(){
+  const html = document.documentElement;
+  const current = html.getAttribute('data-theme');
+  html.setAttribute('data-theme', current==='light'?'dark':'light');
+  localStorage.setItem('theme', html.getAttribute('data-theme')||'dark');
+  updateMermaidTheme();
+}
+// 恢复主题
+(function(){const t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t);})();
+
+// ======================== 国际化 i18n ========================
+const i18n = {
+  zh: {
+    title:'智能决策助手', badge:'AI智能体系统', placeholder:'输入你的问题，如：平安银行股票怎么样？',
+    send:'发送', workflow:'工作流', config:'配置', usage:'使用记录', history:'历史',
+    stockBtn:'股票分析', weatherBtn:'天气查询', currencyBtn:'汇率分析',
+    thinking:'思考中...', exportBtn:'导出报告', login:'登录', register:'注册',
+    logout:'登出', clear:'清空', darkMode:'切换主题',
+    modelPreparing:'模型准备中，ML预测暂时使用默认值...', modelNotReady:'模型尚未就绪，请在配置页点击"立即重新训练"',
+    retrainBtn:'立即重新训练',
+  },
+  en: {
+    title:'Smart Decision Assistant', badge:'AI Agent System', placeholder:'Ask me: How is Ping An Bank stock?',
+    send:'Send', workflow:'Workflow', config:'Config', usage:'Usage', history:'History',
+    stockBtn:'Stock Analysis', weatherBtn:'Weather', currencyBtn:'Currency',
+    thinking:'Thinking...', exportBtn:'Export', login:'Login', register:'Register',
+    logout:'Logout', clear:'Clear', darkMode:'Toggle Theme',
+    modelPreparing:'Models preparing, ML predictions using defaults...', modelNotReady:'Models not ready. Click "Retrain" in Config tab.',
+    retrainBtn:'Retrain Now',
+  }
+};
+let currentLang = localStorage.getItem('lang')||'zh';
+
+function toggleLang(){
+  currentLang = currentLang==='zh'?'en':'zh';
+  localStorage.setItem('lang',currentLang);
+  applyLang();
+  document.getElementById('langBtn').textContent = currentLang==='zh'?'EN':'中';
+}
+
+function applyLang(){
+  const t = i18n[currentLang];
+  document.getElementById('queryInput').placeholder = t.placeholder;
+  document.getElementById('sendBtn').textContent = t.send;
+  // 更新tab文字
+  const tabs = document.querySelectorAll('.tabs button');
+  if(tabs[0]) tabs[0].textContent = t.workflow;
+  if(tabs[1]) tabs[1].textContent = t.config;
+  if(tabs[2]) tabs[2].textContent = t.usage;
+  if(tabs[3]) tabs[3].textContent = t.history;
+  // 更新标题和badge
+  document.querySelector('.header h1').textContent = t.title;
+  document.querySelector('.header .badge').textContent = t.badge;
+  // 更新欢迎语
+  const welcome = document.querySelector('.welcome h2');
+  if(welcome) welcome.textContent = currentLang==='zh'?'你好，我是智能决策助手':'Hello, I am Smart Decision Assistant';
+  const welcomeP = document.querySelector('.welcome p');
+  if(welcomeP) welcomeP.innerHTML = currentLang==='zh'?'我可以帮你分析股票行情、天气预报和汇率走势<br>基于工作流的多智能体协作系统，融合ML模型推理与LLM智能决策':'I can help you analyze stock trends, weather forecasts, and currency rates<br>Multi-agent collaborative system with ML inference & LLM decision-making';
+  // 更新快速按钮文字
+  const quickBtns = document.querySelectorAll('.welcome .quick-btn');
+  if(quickBtns[0]) quickBtns[0].textContent = t.stockBtn;
+  if(quickBtns[1]) quickBtns[1].textContent = t.weatherBtn;
+  if(quickBtns[2]) quickBtns[2].textContent = t.currencyBtn;
+  // 更新重训按钮文字
+  const retrainBtn = document.getElementById('retrainBtn');
+  if(retrainBtn) retrainBtn.textContent = t.retrainBtn;
+}
+applyLang();
+document.getElementById('langBtn').textContent = currentLang==='zh'?'EN':'中';
+
+// ======================== 移动端面板 ========================
+function toggleMobilePanel(){
+  const panel = document.querySelector('.side-panel');
+  const overlay = document.getElementById('mobileOverlay');
+  panel.classList.toggle('mobile-open');
+  overlay.classList.toggle('active');
+}
+
+// ======================== Toast通知 ========================
+function showToast(msg, type='info'){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.className='toast '+(type||'info')+' show';
+  clearTimeout(t._timer);
+  t._timer=setTimeout(()=>{t.classList.remove('show');},3500);
+}
+
+// ======================== 语音合成TTS（智能人机交互 - 双向语音）========================
+let _autoSpeak = false;
+
+function speakText(text){
+  if(!('speechSynthesis' in window)){ showToast('浏览器不支持语音播报','error'); return; }
+  window.speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(text.replace(/[【】⚠✓█▎]/g,''));
+  u.lang='zh-CN'; u.rate=1.0; u.pitch=1.0;
+  // 尝试选择中文语音
+  const voices=window.speechSynthesis.getVoices();
+  const zhVoice=voices.find(v=>v.lang.startsWith('zh'));
+  if(zhVoice) u.voice=zhVoice;
+  window.speechSynthesis.speak(u);
+}
+
+function speakBubble(btn){
+  const bubble=btn.closest('.bubble');
+  if(!bubble) return;
+  const text=bubble.dataset.analysis||bubble.textContent||'';
+  if(window.speechSynthesis.speaking){
+    window.speechSynthesis.cancel();
+    btn.classList.remove('speaking');
+    btn.textContent='🔊 播报';
+  }else{
+    speakText(text);
+    btn.classList.add('speaking');
+    btn.textContent='⏹ 停止';
+    const checkEnd=setInterval(()=>{
+      if(!window.speechSynthesis.speaking){
+        btn.classList.remove('speaking');
+        btn.textContent='🔊 播报';
+        clearInterval(checkEnd);
+      }
+    },500);
+  }
+}
+
+function toggleAutoSpeak(){
+  _autoSpeak=!_autoSpeak;
+  const btn=document.getElementById('ttsToggleBtn');
+  btn.style.borderColor=_autoSpeak?'var(--accent)':'var(--border)';
+  btn.style.color=_autoSpeak?'#60a5fa':'var(--text-secondary)';
+  showToast(_autoSpeak?'已开启自动语音播报':'已关闭自动语音播报', _autoSpeak?'success':'info');
+}
+
+// ======================== 语音识别STT（智能人机交互 5%）========================
+let _voiceRecognition = null;
+let _isRecording = false;
+
+function toggleVoice(){
+  const btn = document.getElementById('voiceBtn');
+  const status = document.getElementById('voiceStatus');
+
+  // 检查安全上下文（Web Speech API需要HTTPS或localhost）
+  if(!window.isSecureContext){
+    showToast('语音识别需要HTTPS或localhost，请用 https://127.0.0.1:5000 访问', 'error');
+    return;
+  }
+
+  // 检查浏览器支持
+  if(!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)){
+    showToast('浏览器不支持语音识别，请使用Chrome或Edge浏览器', 'error');
+    return;
+  }
+
+  if(_isRecording){
+    if(_voiceRecognition) _voiceRecognition.stop();
+    _isRecording = false;
+    btn.classList.remove('voice-recording');
+    btn.textContent = '🎤';
+    status.classList.remove('show');
+    return;
+  }
+
+  // 开始录音
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  _voiceRecognition = new SpeechRecognition();
+  _voiceRecognition.lang = 'zh-CN';
+  _voiceRecognition.continuous = false;
+  _voiceRecognition.interimResults = true;
+  _isRecording = true;
+  btn.classList.add('voice-recording');
+  btn.textContent = '⏹';
+  status.classList.add('show');
+
+  const input = document.getElementById('queryInput');
+  _voiceRecognition.onresult = function(e){
+    let transcript = '';
+    for(let i=e.resultIndex;i<e.results.length;i++){
+      transcript += e.results[i][0].transcript;
+    }
+    input.value = transcript;
+    if(e.results[e.results.length-1].isFinal){
+      setTimeout(()=>{
+        status.classList.remove('show');
+        if(input.value.trim()) send();
+      }, 300);
+    }
+  };
+  _voiceRecognition.onerror = function(e){
+    console.log('语音识别错误:', e.error);
+    _isRecording = false;
+    btn.classList.remove('voice-recording');
+    btn.textContent = '🎤';
+    status.classList.remove('show');
+    if(e.error==='not-allowed'){
+      showToast('麦克风权限被拒绝，请在浏览器设置中允许麦克风访问', 'error');
+    }else if(e.error==='no-speech'){
+      showToast('未检测到语音输入，请重试', 'error');
+    }else if(e.error==='network'){
+      showToast('语音识别网络错误，请检查网络连接', 'error');
+    }else if(e.error==='aborted'){
+      // 用户主动停止，不提示
+    }else{
+      showToast('语音识别错误: '+e.error, 'error');
+    }
+  };
+  _voiceRecognition.onend = function(){
+    _isRecording = false;
+    btn.classList.remove('voice-recording');
+    btn.textContent = '🎤';
+    status.classList.remove('show');
+  };
+  _voiceRecognition.start();
+}
+
+// 预加载语音列表（部分浏览器异步加载）
+if('speechSynthesis' in window){
+  window.speechSynthesis.getVoices();
+  window.speechSynthesis.onvoiceschanged=function(){ window.speechSynthesis.getVoices(); };
+}
+</script>
+</body>
+</html>

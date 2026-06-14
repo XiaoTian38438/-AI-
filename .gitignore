@@ -1,0 +1,26 @@
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# IDE
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+venv/
+env/
+
+# Node
+node_modules/
+package-lock.json
+create_ppt.js
+
+# Large data files (exceed GitHub 100MB limit)
+examples/digit_recognition/data/mnist_train.csv
+examples/digit_recognition/data/mnist_test.csv
+examples/digit_recognition/data/digit_weights.pkl

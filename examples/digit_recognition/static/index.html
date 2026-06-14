@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>手写数字识别 - Mini AI</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh; display: flex; align-items: center; justify-content: center;
+            color: #e0e0e0;
+        }
+        .app {
+            background: rgba(255,255,255,0.05); backdrop-filter: blur(20px);
+            border-radius: 24px; padding: 40px; display: flex; gap: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1);
+        }
+        .canvas-section { text-align: center; }
+        .canvas-section h2 { margin-bottom: 16px; font-size: 18px; font-weight: 500; color: #a0a0c0; }
+        #canvas {
+            border-radius: 16px; cursor: crosshair; touch-action: none;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+        }
+        .buttons { margin-top: 20px; display: flex; gap: 12px; justify-content: center; }
+        button {
+            padding: 12px 28px; border: none; border-radius: 12px; font-size: 15px;
+            cursor: pointer; font-weight: 600; transition: all 0.2s;
+        }
+        .btn-clear { background: rgba(255,255,255,0.1); color: #aaa; }
+        .btn-clear:hover { background: rgba(255,255,255,0.2); }
+        .btn-predict {
+            background: linear-gradient(135deg, #e94560, #c23616); color: #fff;
+            box-shadow: 0 4px 15px rgba(233,69,96,0.4);
+        }
+        .btn-predict:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(233,69,96,0.5); }
+        .result-section { min-width: 280px; display: flex; flex-direction: column; align-items: center; }
+        .result-section h2 { margin-bottom: 16px; font-size: 18px; font-weight: 500; color: #a0a0c0; }
+        .digit-display {
+            font-size: 120px; font-weight: 700; line-height: 1;
+            background: linear-gradient(135deg, #e94560, #f39c12);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            margin: 10px 0;
+        }
+        .confidence { font-size: 16px; color: #8888aa; }
+        .confidence span { color: #e94560; font-weight: 600; font-size: 20px; }
+        .probs {
+            margin-top: 24px; width: 100%; display: flex; flex-direction: column; gap: 6px;
+        }
+        .prob-row { display: flex; align-items: center; gap: 8px; }
+        .prob-label { width: 24px; text-align: right; font-size: 13px; color: #888; font-weight: 600; }
+        .prob-bar-bg {
+            flex: 1; height: 18px; background: rgba(255,255,255,0.05);
+            border-radius: 9px; overflow: hidden;
+        }
+        .prob-bar {
+            height: 100%; border-radius: 9px; transition: width 0.3s;
+            background: linear-gradient(90deg, #e94560, #f39c12);
+        }
+        .prob-val { width: 50px; font-size: 12px; color: #666; }
+        .placeholder { color: #444; font-size: 14px; margin-top: 40px; }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <div class="canvas-section">
+            <h2>手写输入</h2>
+            <canvas id="canvas" width="280" height="280"></canvas>
+            <div class="buttons">
+                <button class="btn-clear" onclick="clearCanvas()">清除</button>
+                <button class="btn-predict" onclick="predict()">识别</button>
+            </div>
+        </div>
+        <div class="result-section">
+            <h2>识别结果</h2>
+            <div id="result">
+                <div class="placeholder">在左侧画布上写一个数字<br>然后点击 "识别"</div>
+            </div>
+        </div>
+    </div>
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#000';
+        ctx.fillRect(0, 0, 280, 280);
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 18;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        let drawing = false;
+
+        function getPos(e) {
+            const r = canvas.getBoundingClientRect();
+            const scaleX = 280 / r.width, scaleY = 280 / r.height;
+            if (e.touches) {
+                return { x: (e.touches[0].clientX - r.left) * scaleX, y: (e.touches[0].clientY - r.top) * scaleY };
+            }
+            return { x: (e.clientX - r.left) * scaleX, y: (e.clientY - r.top) * scaleY };
+        }
+
+        canvas.addEventListener('mousedown', (e) => { drawing = true; const p = getPos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); });
+        canvas.addEventListener('mouseup', () => drawing = false);
+        canvas.addEventListener('mouseleave', () => drawing = false);
+        canvas.addEventListener('mousemove', (e) => { if (!drawing) return; const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); });
+        canvas.addEventListener('touchstart', (e) => { e.preventDefault(); drawing = true; const p = getPos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); });
+        canvas.addEventListener('touchend', () => drawing = false);
+        canvas.addEventListener('touchmove', (e) => { if (!drawing) return; e.preventDefault(); const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); });
+
+        function clearCanvas() {
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, 280, 280);
+            document.getElementById('result').innerHTML = '<div class="placeholder">在左侧画布上写一个数字<br>然后点击 "识别"</div>';
+        }
+
+        async function predict() {
+            const imageData = canvas.toDataURL('image/png');
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ image: imageData })
+                });
+                const data = await response.json();
+                if (data.error) { alert('错误: ' + data.error); return; }
+                const probs = data.probs || Array(10).fill(0);
+                const predDigit = data.prediction;
+                const confidence = (data.confidence * 100).toFixed(1);
+                let html = `<div class="digit-display">${predDigit}</div>`;
+                html += `<div class="confidence">置信度: <span>${confidence}%</span></div>`;
+                html += '<div class="probs">';
+                for (let i = 0; i < 10; i++) {
+                    const p = (probs[i] * 100).toFixed(1);
+                    html += `<div class="prob-row">
+                        <span class="prob-label">${i}</span>
+                        <div class="prob-bar-bg"><div class="prob-bar" style="width:${p}%"></div></div>
+                        <span class="prob-val">${p}%</span>
+                    </div>`;
+                }
+                html += '</div>';
+                document.getElementById('result').innerHTML = html;
+            } catch (err) {
+                alert('请求失败: ' + err.message);
+            }
+        }
+    </script>
+</body>
+</html>
